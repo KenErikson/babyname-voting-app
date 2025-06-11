@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Name Voting</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .name-card {
+            background-color: #2d2d2d;
+            border-color: #4a4a4a;
+        }
+        .name-card:hover {
+            background-color: #3d3d3d;
+        }
+        .progress-bar {
+            background-color: #4a4a4a;
+        }
+        .progress-fill {
+            background-color: #60a5fa;
+        }
+        .toplist-item {
+            background-color: #2d2d2d;
+        }
+        .gender-toggle {
+            background-color: #2d2d2d;
+        }
+        .gender-toggle.active {
+            background-color: #60a5fa;
+            color: white;
+        }
+        .merge-section {
+            background-color: #2d2d2d;
+            border-color: #4a4a4a;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center text-gray-200 mb-8">Which name do you prefer?</h1>
+
+        <!-- Gender Toggle -->
+        <div class="max-w-xs mx-auto mb-8">
+            <form action="{{ url_for('index') }}" method="GET" class="flex space-x-2">
+                <button type="submit" name="gender" value="boy"
+                        class="gender-toggle flex-1 py-2 px-4 rounded-l-lg {% if current_gender == 'boy' %}active{% endif %}">
+                    Boy Names
+                </button>
+                <button type="submit" name="gender" value="girl"
+                        class="gender-toggle flex-1 py-2 px-4 rounded-r-lg {% if current_gender == 'girl' %}active{% endif %}">
+                    Girl Names
+                </button>
+            </form>
+        </div>
+
+        <div class="max-w-4xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Voting Section -->
+                <div class="space-y-8">
+                    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+                        <form action="{{ url_for('vote') }}" method="POST" class="space-y-6">
+                            <input type="hidden" name="name_a" value="{{ names.name_a }}">
+                            <input type="hidden" name="name_b" value="{{ names.name_b }}">
+                            <input type="hidden" name="gender" value="{{ current_gender }}">
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <button type="submit" name="winner" value="{{ names.name_a }}" 
+                                        class="name-card p-6 text-center rounded-lg border-2 transition-colors">
+                                    <h2 class="text-2xl font-semibold text-gray-200">{{ names.name_a }}</h2>
+                                </button>
+                                
+                                <button type="submit" name="winner" value="{{ names.name_b }}"
+                                        class="name-card p-6 text-center rounded-lg border-2 transition-colors">
+                                    <h2 class="text-2xl font-semibold text-gray-200">{{ names.name_b }}</h2>
+                                </button>
+                            </div>
+
+                            <button type="submit" name="winner" value=""
+                                    class="w-full p-4 text-center rounded-lg border-2 border-gray-600 hover:bg-gray-700 transition-colors text-gray-300">
+                                Skip these names
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Merge Section -->
+                    <div class="merge-section rounded-lg shadow-lg p-6">
+                        <h2 class="text-xl font-semibold text-gray-200 mb-4">Merge with Partner's Votes</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-gray-400 mb-2">Your current votes (copy this to share):</p>
+                                <textarea readonly class="w-full h-24 bg-gray-700 text-gray-200 p-2 rounded" onclick="this.select()">{{ vote_data }}</textarea>
+                            </div>
+                            <form action="{{ url_for('merge') }}" method="POST" class="space-y-4">
+                                <input type="hidden" name="gender" value="{{ current_gender }}">
+                                <div>
+                                    <p class="text-gray-400 mb-2">Paste partner's votes here:</p>
+                                    <textarea name="partner_votes" required
+                                              class="w-full h-24 bg-gray-700 text-gray-200 p-2 rounded"
+                                              placeholder='{"Name1": 5, "Name2": 3, ...}'></textarea>
+                                </div>
+                                <button type="submit" 
+                                        class="w-full p-3 text-center rounded-lg border-2 border-blue-500 hover:bg-blue-600 transition-colors text-white">
+                                    Merge Votes
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toplist Section -->
+                <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold text-gray-200 mb-4">Your Top Names</h2>
+                    {% if toplist %}
+                        <div class="space-y-2">
+                            {% for name, votes in toplist %}
+                                <div class="toplist-item rounded-lg p-3">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-gray-200">{{ name }}</span>
+                                        <span class="text-gray-400 text-sm">{{ votes }} votes</span>
+                                    </div>
+                                    <div class="h-2 progress-bar rounded-full overflow-hidden">
+                                        {% if loop.first %}
+                                            <div class="h-full progress-fill" style="width: 100%"></div>
+                                        {% else %}
+                                            <div class="h-full progress-fill" style="width: {{ (votes / toplist[0][1] * 100) | round }}%"></div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-400 text-center">No votes yet. Start voting to see your toplist!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

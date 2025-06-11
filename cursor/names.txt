@@ -1,0 +1,33 @@
+# Boy names
+James
+William
+Michael
+David
+John
+Alexander
+Daniel
+Noah
+Liam
+Ethan
+Riley
+Jordan
+Taylor
+Morgan
+Casey
+
+# Girl names
+Emma
+Olivia
+Ava
+Isabella
+Sophia
+Charlotte
+Mia
+Amelia
+Harper
+Evelyn
+Riley
+Jordan
+Taylor
+Morgan
+Casey 
